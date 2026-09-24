@@ -3,7 +3,6 @@ from datetime import datetime
 
 from app.database.base import Base
 
-
 class RequestLog(Base):
 
     __tablename__ = "request_logs"

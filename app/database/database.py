@@ -19,14 +19,10 @@ SessionLocal = sessionmaker(
 )
 
 
-# Load models
+# Import models here only for table registration
 from app.models.request_log import RequestLog
-
-
-print("Tables detected:", Base.metadata.tables.keys())
+from app.models.conversation import Conversation
+from app.models.message import Message
 
 
 Base.metadata.create_all(bind=engine)
-
-
-print("Table creation finished")
