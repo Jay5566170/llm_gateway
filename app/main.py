@@ -1,14 +1,20 @@
+
 from fastapi import FastAPI, Depends
 from pydantic import BaseModel
 from sqlalchemy.orm import Session
 
 
 from app.database.dependencies import get_db
-
 from app.repositories.request_repository import create_request_log
-from app.repositories.conversation_repository import create_conversation
-from app.repositories.message_repository import create_message
+from app.repositories.conversation_repository import (
+    create_conversation,
+    get_all_conversations
+)
 
+from app.repositories.message_repository import (
+    create_message,
+    get_messages_by_conversation
+)
 from app.services.llm_service import generate_response
 
 
@@ -69,4 +75,29 @@ def generate(
     return {
         "conversation_id": conversation.id,
         "response": result
+    }
+
+@app.get("/conversations")
+def get_conversations(
+    db: Session = Depends(get_db)
+):
+
+         conversations = get_all_conversations(db)
+
+         return conversations
+
+@app.get("/conversations/{conversation_id}")
+def get_conversation(
+    conversation_id: int,
+    db: Session = Depends(get_db)
+):
+
+    messages = get_messages_by_conversation(
+        db=db,
+        conversation_id=conversation_id
+    )
+
+    return {
+        "conversation_id": conversation_id,
+        "messages": messages
     }

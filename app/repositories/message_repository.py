@@ -21,3 +21,17 @@ def create_message(
     db.refresh(message)
 
     return message
+
+
+def get_messages_by_conversation(
+    db: Session,
+    conversation_id: int
+):
+
+    return (
+        db.query(Message)
+        .filter(
+            Message.conversation_id == conversation_id
+        )
+        .all()
+    )
