@@ -23,8 +23,9 @@ def generate_with_gemini(prompt):
         return response.text
 
 
+
     except Exception as e:
 
-        print("Gemini Error:", e)
+     print("Gemini Error:", e)
 
-        return "Gemini service failed"
+    raise e
