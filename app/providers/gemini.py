@@ -1,31 +1,42 @@
 import os
 from dotenv import load_dotenv
-import google.generativeai as genai
+from google import genai
+
+from app.providers.base import LLMProvider
 
 
 load_dotenv()
 
 
-api_key = os.getenv("GEMINI_API_KEY")
+class GeminiProvider(LLMProvider):
 
-genai.configure(api_key=api_key)
+    def __init__(self, api_key=None):
+
+        if api_key is None:
+            api_key = os.getenv("GEMINI_API_KEY")
+
+        if not api_key:
+            raise Exception(
+                "GEMINI_API_KEY is missing"
+            )
+
+        self.client = genai.Client(
+            api_key=api_key
+        )
 
 
+    def generate(self, prompt: str) -> str:
 
-model = genai.GenerativeModel("gemini-3.6-flash")
+        try:
 
-def generate_with_gemini(prompt):
+            response = self.client.models.generate_content(
+                model="gemini-3.8-flash",
+                contents=prompt
+            )
 
-    try:
+            return response.text
 
-        response = model.generate_content(prompt)
+        except Exception as e:
 
-        return response.text
-
-
-
-    except Exception as e:
-
-     print("Gemini Error:", e)
-
-    raise e
+            print("Gemini Error:", e)
+            raise e

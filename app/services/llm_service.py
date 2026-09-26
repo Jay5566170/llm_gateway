@@ -1,8 +1,11 @@
-from app.services.provider_manager import generate_with_fallback
+from app.services.llm_router import LLMRouter
+
+
+router = LLMRouter()
 
 
 def generate_response(prompt):
 
-    response = generate_with_fallback(prompt)
-
-    return response
+    return router.generate(
+        prompt
+    )

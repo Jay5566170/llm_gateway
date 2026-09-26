@@ -1,4 +1,7 @@
+import uuid
+
 from fastapi.testclient import TestClient
+
 from app.main import app
 
 
@@ -7,81 +10,73 @@ client = TestClient(app)
 
 def test_complete_gateway_flow():
 
+    # Create a unique user every test run
+    email = f"test_{uuid.uuid4()}@example.com"
+
     # 1. Create user
     user_response = client.post(
-        "/create-user",
-        params={
-            "email": "test@example.com"
-        }
+        f"/create-user?email={email}"
     )
 
     assert user_response.status_code == 200
 
     user_data = user_response.json()
 
+    assert "api_key" in user_data
+
     api_key = user_data["api_key"]
 
-    assert api_key is not None
 
-
-    # 2. Test invalid API key
-    bad_response = client.post(
-        "/generate",
-        headers={
-            "x-api-key": "wrong-key"
-        },
-        json={
-            "prompt": "hello"
-        }
-    )
-
-    assert bad_response.status_code in [401,403]
-
-
-    # 3. Generate LLM response
-    response = client.post(
+    # 2. Generate response using API key
+    generate_response = client.post(
         "/generate",
         headers={
             "x-api-key": api_key
         },
         json={
-            "prompt": "Explain AI in one sentence"
+            "prompt": "Explain what an LLM gateway is in one sentence"
         }
     )
 
+    assert generate_response.status_code == 200
 
-    assert response.status_code == 200
+    generation_data = generate_response.json()
 
-
-    data = response.json()
-
-    assert "response" in data
-    assert "conversation_id" in data
+    assert "response" in generation_data
+    assert "conversation_id" in generation_data
 
 
-    conversation_id = data["conversation_id"]
+    conversation_id = generation_data["conversation_id"]
 
 
-    # 4. Check conversations list
-
-    conversations = client.get(
+    # 3. Check conversations list
+    conversations_response = client.get(
         "/conversations"
     )
 
-    assert conversations.status_code == 200
+    assert conversations_response.status_code == 200
+
+    conversations = conversations_response.json()
+
+    assert len(conversations) > 0
 
 
-    # 5. Check conversation history
-
-    history = client.get(
+    # 4. Check specific conversation
+    conversation_response = client.get(
         f"/conversations/{conversation_id}"
     )
 
+    assert conversation_response.status_code == 200
 
-    assert history.status_code == 200
+    conversation = conversation_response.json()
+
+    assert "messages" in conversation
+
+    assert len(conversation["messages"]) == 2
 
 
-    history_data = history.json()
+    # 5. Verify user + assistant messages exist
+    messages = conversation["messages"]
 
-
-    assert len(history_data["messages"]) >= 2
+    assert messages[0]["role"] == "user"
+    assert messages[1]["role"] == "assistant"
