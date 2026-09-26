@@ -3,7 +3,6 @@ from sqlalchemy.orm import sessionmaker
 
 from app.database.base import Base
 
-
 DATABASE_URL = "postgresql://postgres:postgres123@localhost:5432/llm_gateway"
 
 
@@ -18,11 +17,10 @@ SessionLocal = sessionmaker(
     bind=engine
 )
 
-
-# Import models here only for table registration
 from app.models.request_log import RequestLog
 from app.models.conversation import Conversation
 from app.models.message import Message
-
+from app.models.user import User
+from app.models.api_key import APIKey
 
 Base.metadata.create_all(bind=engine)
